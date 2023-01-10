@@ -1,0 +1,353 @@
+create table tran(id int, name varchar(100));
+
+start transaction;
+insert into tran values(1,'a');
+insert into tran values(2,'b');
+insert into tran values(3,'c');
+update tran set name='x' where id=1;
+delete from tran where id=2;
+rollback;
+
+select * from tran;
+
+
+ select * from (Select ename,salary from emp order by salary desc limit 5 ) as t order by salary;
+
+
+
+
+
+select * from t1
+where 
+c1=1 and c2='a' and c3=100;
+
+
+
+
+select * from t1
+where 
+(c1=1 and c2='a') or c3=100;
+
+
+select * from emp where eid=1 and salary=100;
+
+
+select * from emp where eid=1 or salary=627;
+
+
+select * from emp where eid=1 and (ename='a1' or salary=627);
+
+
+select * from emp where (eid=1 and ename='a1') or salary=627;
+
+
+create table emp_mgr (eid int, ename varchar(100), mgrid int);
+
+insert into emp_mgr values(1,'a',4);
+insert into emp_mgr values(2,'b',4);
+insert into emp_mgr values(3,'c',4);
+insert into emp_mgr values(4,'d',4);
+insert into emp_mgr values(5,'e',6);
+insert into emp_mgr values(6,'f',6);
+insert into emp_mgr values(7,'g',6);
+
+
+
+select e.mgrid,m.ename mgrname,e.eid,e.ename from emp_mgr e,
+emp_mgr m
+where 
+e.mgrid=m.eid and
+e.mgrid<>e.eid;
+
+-- salary>2000 - High
+-- SALARY>1500- Above Avg
+-- Salary>1000- Avg
+--SALARY>500- below Avg
+--else -- Low
+
+select eid,ename,salary,
+case 
+when salary>2000 then 'High'
+when salary>1500 then 'Above Avg'
+when salary>1000 then 'Avg'
+when salary>500 then 'Below Avg'
+else 'Low'
+end  salaryband
+from emp;
+
+
+
+create table marks(roll int, sub varchar(10),marks int);
+insert into marks values
+(1,'M',97),
+(1,'E',98),
+(1,'H',99),
+(2,'M',92),
+(2,'E',97),
+(2,'H',20),
+(3,'M',36),
+(3,'E',37),
+(3,'H',38);
+
+
+select roll,case when min(marks)>=35 and avg(marks)>=40 then
+'Pass'
+else 'Fail' end Result from marks
+group by roll;
+
+
+
+select sum(case when deptname='HR' then salary end) HR,
+sum(case when deptname='IT' then salary end) IT,
+sum(case when deptname='Finance' then salary end) Finance,
+sum(case when deptname='OPR' then salary end) OPR
+from emp right join dept
+on emp.deptid=dept.deptid;
+
+create view vw_emp_dept
+as
+select ename,deptname,salary
+from emp join dept
+on emp.deptid=dept.deptid;
+
+
+select * from vw_emp_dept;
+
+
+delete from vw_emp_dept; -- not allowed
+
+
+
+update vw_emp_dept
+set ename='a1' ,deptname='IT' where ename='a'; -- not allowed because updating columns of more than 1 table
+
+
+update vw_emp_dept
+set ename='a1'  where ename='a'; -- allowed because updating columns of only 1 table
+
+
+insert into vw_emp_dept (ename,salary) 
+values('xyz',100);
+
+
+
+drop  view vw_dept_cnt;
+create view vw_dept_cnt
+as
+select deptname,count(eid)  e_cnt
+from dept left join emp
+on dept.deptid=emp.deptid
+group by deptname;
+
+
+delete from vw_dept_cnt; -- not allowed
+
+update vw_dept_cnt set deptname='HR1' where deptname='HR'; -- not allowed
+
+insert into vw_dept_cnt (deptname) values('NewDept'); -- not allowed
+
+
+
+
+explain 
+select * from vw_emp_dept;
+
+
+select * from vw_emp_dept where salary >1000;
+
+
+-- non-correlated sub query
+select * from dept where deptid not in
+(select deptid from emp);
+
+select * from dept where deptid in
+(select deptid from emp);
+
+
+-- correlated sub query
+select * from dept where not exists
+(select 1 from emp where emp.deptid=dept.deptid);
+
+
+select * from dept where 
+exists
+(select 1 from emp where emp.deptid=dept.deptid);
+
+
+
+
+--Q19. Write a query that uses the EXISTS operator to extract all salespeople who have customers
+with a rating of 300.
+
+
+select table_schema,table_name from
+information_schema.tables
+where table_name like 'salespeople';
+
+
+
+select * from salespeople s
+where exists (select 1 from customers c where s.snum=c.snum
+and rating=300);
+
+
+
+select * from salespeople s
+,customers c where s.snum=c.snum
+and rating=300;
+
+--Q72. Write a query using the EXISTS operator that selects all salespeople with customers located in
+their cities who are not assigned to them.
+
+
+select * from salespeople s
+where exists(select 1 from customers c 
+where s.snum<>c.snum
+and s.city=c.city);
+
+--Q38. Write a select command using a corelated subquery that selects the names and numbers of all
+customers with ratings equal to the maximum for their city.
+
+
+
+select city,max(rating) from customers
+group by city;
+
+select cnum,cname,city from customers o
+where
+exists(select 1 from customers i
+where i.city=o.city group by i.city
+having o.rating=max(i.rating) );
+
+
+
+create table test_dml
+(c1 int not null, c2 int, c3 int);
+
+create view vw_test_dml
+as
+select c2,c3 from test_dml;
+
+
+insert into vw_test_dml values(2,3); -- doesn't work
+
+
+
+
+create view vw_self_join
+as
+select t1.c1, t2.c2 
+from test_dml t1, test_dml t2
+where t1.c1=t2.c1;
+
+delete from vw_self_join;
+
+insert  into  vw_self_join(c1) values(1); -- works
+
+
+insert  into  vw_self_join(c1,c2) values(1,2); -- fails
+
+-- autoincrement columns
+
+create table account(accno int unique auto_increment,accname varchar(100));
+
+insert into account(accname) values('a'),('b'),('c');
+
+select * from account;
+
+insert into account(accno,accname) values(10,'a10');
+
+
+select * from account;
+
+insert into account(accname) values('a11');
+
+
+create table account2(accno int unique auto_increment,accno2 int unique auto_increment,accname varchar(100)); -- fails
+
+
+truncate table test_dml;
+
+
+
+insert into t1 values(1,'a'),(2,'b');
+
+start transaction;
+truncate table t1;
+rollback;
+
+select  * from t1;
+
+insert into t1 values(1,'a'),(2,'b');
+
+start transaction;
+delete from t1;
+rollback;
+
+select  * from t1;
+
+
+
+delete from account;
+
+insert into account(accname) values('a');
+
+truncate table account;
+
+insert into account(accname) values('a');
+
+
+truncate table t_parent;
+
+delete from t_parent;
+
+delete from t_parent where deptid=2;
+
+delete from t_parent where deptid=1;
+
+
+
+
+
+select * from emp where eid=1;
+
+
+
+create table emp_rank
+(eid int, ename varchar(100),salary int, deptid int);
+
+insert into emp_rank
+values
+(1,'a',100,1),
+(2,'b',200,2),
+(3,'c',100,1),
+(4,'d',200,2),
+(5,'e',50,1),
+(6,'f',60,2),
+(7,'g',70,1);
+
+select * ,
+row_number() over(order by salary desc) rn,
+rank() over(order by salary desc) rnk,
+dense_rank() over(order by salary desc) drnk
+from emp_rank;
+
+
+select * ,
+row_number() over(partition by deptid order by salary desc) rn,
+rank() over(partition by deptid order by salary desc) rnk,
+dense_rank() over(partition by deptid order by salary desc) drnk
+from emp_rank;
+
+
+
+
+8. Display the deptname, name of top 5 earning employees from each dept.
+
+select * from (
+select deptname,ename,salary,
+row_number() over(partition by deptname order by salary desc) rn
+from
+emp join dept
+on emp.deptid=dept.deptid) as t where rn<=5 ;
+

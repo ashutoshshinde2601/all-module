@@ -1,0 +1,13 @@
+35. Select all customers whose names fall in between ‘A’ and ‘G’ alphabetical range.
+36. Select all the possible combinations of customers that you can assign.
+38. Write a select command using a corelated subquery that selects the names and numbers of all 
+customers with ratings equal to the maximum for their city.
+40. Write a select command that produces the rating followed by the name of each customer in 
+San Jose.
+41. Find all orders with amounts smaller than any amount for a customer in San Jose.
+42. Find all orders with above average amounts for their customers
+44. Write a query that calculates the amount of the salesperson’s commission on each order by a 
+customer with a rating above 100.00.
+ans:-select *,amt*comm from salespeople s,customers c,orders o where o.snum=s.snum and c.snum=s.snum having rating >100;
+49. Write a query that joins the Customer table to itself to find all pairs of customers served by a 
+single salesperson.

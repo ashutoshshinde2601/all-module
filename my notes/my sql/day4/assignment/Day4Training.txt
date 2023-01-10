@@ -1,0 +1,352 @@
+create view vw_comp_field
+as
+select ename,salary,salary+(salary*.1) CTC
+from emp;
+
+
+update vw_comp_field 
+set ctc=1000;
+
+
+update vw_comp_field 
+set salary=salary+0;
+
+
+
+create table emp_hr
+as select * from emp where
+deptid=1;
+
+create table emp_it
+as select * from emp where
+deptid=2;
+
+create table emp_finance
+as select * from emp where
+deptid=3;
+
+
+create view emp_v
+as
+select * from emp_hr
+union all
+select * from emp_finance
+union all
+select * from emp_it;
+
+
+
+select round(356.32789,2);
+
+
+
+select round(356.32789,1);
+select round(356.32789);
+select floor(10.23);
+select ceiling(10.23);
+select floor(-10.23);
+select ceiling(-10.23);
+select power(10,2);
+select sqrt(power(10,2));
+select mod(10,3);
+ select 10%3;
+select abs(-100);
+
+
+-- give any number the output should be closest multiple of 5
+
+-- if I give 36 output should 35
+-- input is 39 output should be 40
+
+select (36-(36%5));
+
+
+select substring('abcdef',2,3);
+
+select substring('abcdef',3,2);
+
+select substring('abcdef',-2,4); -- start from right side
+
+select instr('abcdef','cd');
+
+select replace('abcdeffccdd','cd','xy');
+
+
+select left('abcdef',2);
+
+select right('abcdef',3);
+
+select ltrim('    ab  cd  ');
+
+select ltrim('    ab  cd  ');
+select rtrim('    ab  cd  ');
+
+select trim('    ab  cd  ');
+
+select reverse('abcd');
+
+select weekday(now());
+
+select week(now());
+
+select last_day(now());
+
+select datediff(now(),'2022-09-19');
+
+
+select date_add(now(),interval 3 day);
+
+select date_add(now(),interval 3 month);
+select date_add(now(),interval 3 year);
+select date_add(now(),interval 3 hour);
+
+select date_format(now(),'%D-%M-%Y');
+
+select date_format(now(),'%d-%m-%Y');
+
+select date_format(now(),'%d-%m-%y');
+
+
+
+select concat('a','b','c')$$
+
+delimiter $$
+
+
+select * from emp limit 5 $$
+
+
+delimiter $$
+create function sf_helloworld(name varchar(100))
+returns varchar(100)
+DETERMINISTIC
+begin
+return(concat('Hello ',name));
+end;
+$$
+
+
+delimiter ;
+
+select sf_helloworld('John');
+
+select sf_helloworld(ename) from emp limit 5;
+
+
+delimiter $$
+create function sf_checkevenodd(num int)
+returns varchar(100)
+deterministic
+begin
+if mod(num,2)=0 then
+return(concat(num,' is an even number'));
+else
+return(concat(num,' is an odd number'));
+end if;
+end;
+$$
+
+delimiter ;
+
+select sf_checkevenodd(33);
+
+select eid,sf_checkevenodd(eid) from emp limit 5;
+
+
+
+delimiter !!
+create function sf_fact(num tinyint)
+returns bigint
+deterministic
+begin
+declare fact bigint;
+declare i int;
+set i=2;
+set fact=1;
+while(i<=num)
+do
+set fact=fact*i;
+set i=i+1;
+end while;
+return(fact);
+end;
+!!
+
+
+delimiter ;
+
+select sf_fact(5);
+
+
+
+delimiter $$
+create function sf_checkprime(num int)
+returns varchar(100)
+deterministic
+begin
+declare i int default 2;
+while(i<=num/2)
+do
+if mod(num,i)=0 then
+return(concat(num,' is not a prime number'));
+end if;
+set i=i+1;
+end while;
+return(concat(num,' is a prime number'));
+end;
+$$
+
+delimiter ;
+
+
+
+select sf_checkprime(13);
+
+
+
+--Q4. Find the largest order taken by each salesperson on each date.
+select odate,sname,onum,amt from (
+select odate,sname,onum,amt ,row_number() over(partition by sname,odate order by amt desc) rn
+from 
+orders o , salespeople s
+where o.snum=s.snum) as t where rn=1;
+
+select odate,sname,max(amt)
+from 
+orders o , salespeople s
+where o.snum=s.snum
+group by odate,sname;
+
+--Q7. List names of all customers matched with the salespeople serving them.
+
+select 
+cname,sname
+from customers c , salespeople s 
+where c.snum=s.snum;
+
+
+--Q8. Find the names and numbers of all salespeople who had more than one customer.
+
+select sname,s.snum,count(cnum) from salespeople s, customers c
+where s.snum=c.snum
+group by  sname,s.snum
+having count(cnum)>1;
+
+
+
+
+--Q9. Count the orders of each of the salespeople and output the results in descending order.
+
+
+select 
+sname,count(onum) ord_cnt
+from 
+orders o , salespeople s
+where o.snum=s.snum
+group by sname
+order by count(onum) desc;
+
+
+select 
+sname,count(onum) "order"
+from 
+orders o , salespeople s
+where o.snum=s.snum
+group by sname
+order by 2 desc;
+
+
+--Q10. List the Customer table if and only if one or more of the customers in the Customer table are
+located in San Jose.
+
+
+
+select * from customers
+where exists(select 1 from customers where city='San Jose');
+
+
+--Q11. Match salespeople to customers according to what city they lived in.
+
+
+select sname,cname 
+from salespeople s , customers c
+where s.snum=c.snum
+and 
+s.city=c.city;
+
+
+
+--Q17. Give the sums of the amounts from the Orders table, grouped by date, eliminating all those
+dates where the SUM was not at least 2000.00 above the MAX amount.
+
+
+select odate,sum(amt) from orders group by odate
+having sum(amt)>2000+max(amt);
+
+
+select odate,sum(amt) from orders group by odate
+having sum(amt)>max(amt)+2000;
+
+
+--Q18. Select all orders that had amounts that were greater than at least one of the orders from
+October 6.
+
+
+select * from orders
+where amt>(select min(amt) from orders where odate='1996-10-06');
+
+
+select * from orders
+where amt>any(select amt from orders where odate='1996-10-06');
+
+
+--Q20. Find all pairs of customers having the same rating.
+
+select c1.cname,c2.cname
+from customers c1, customers c2
+where c1.rating=c2.rating
+and
+c1.cname<c2.cname;
+
+
+--Q21. Find all customers whose CNUM is 1000 above the SNUM of Serres.
+
+select * from customers where cnum>1000+(select snum from salespeople where 
+sname='Serres');
+
+
+--Q23. Find the largest order taken by each salesperson on each date, eliminating those MAX orders
+which are less than $3000.00 in value.
+
+
+select sname,odate,max(amt) from orders o , salespeople s
+where o.snum=s.snum
+ group by odate,sname
+having max(amt)>=3000;
+
+
+
+--Q28. Write a query that produces all customers serviced by salespeople with a commission above
+12%. Output the customer’s name and the salesperson’s rate of commission.
+
+
+select cname,comm
+from customers c , salespeople s
+where c.snum=s.snum
+and comm>0.12;
+
+
+
+--Q27. Count the number of salespeople currently listing orders in the Orders table.
+
+select count(distinct snum) from orders;
+
+
+
+
+
+
+
+
+
+

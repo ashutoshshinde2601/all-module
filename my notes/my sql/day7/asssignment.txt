@@ -1,0 +1,170 @@
+Select concat(column_name,',') 
+From information_schema.columns
+Where table_name='emp_audit' and
+table_schema='sep_2022' order by ordinal_position;
+Drop  table emp_audit;
+Create table emp_audit
+(upd_dt datetime,
+Upd_user varchar(100),
+Old_eid int,
+New_eid int,
+Old_ename varchar(100),
+New_ename varchar(100),
+Old_salary int,
+New_salary int,
+Old_deptid int,
+New_deptid int);
+
+Drop trigger trig_emp_upd_audit;
+Delimiter $$
+Create trigger trig_emp_upd_audit
+Before update on emp
+For each row
+Begin
+Insert into emp_audit
+( upd_dt,   Upd_user, Old_eid,  New_eid,  Old_ename, New_ename, Old_salary, New_salary,old_deptid,new_deptid)
+values(
+curdate(),user(),old.eid,new.eid,old.ename,new.ename,
+Old.salary, new.salary,old.deptid,new.deptid);
+End;
+$$
+
+Delimiter ;
+
+
+Update emp set salary=salary+100 , deptid=3
+Where eid in (1,4,10);
+
+
+Start transaction;
+Update emp set salary=10 , deptid=2
+Where eid in (2,3,11);
+
+Rollback;
+
+
+
+
+
+Drop trigger trig_emp_del_audit;
+Delimiter $$
+Create trigger trig_emp_del_audit
+Before delete on emp
+For each row
+Begin
+Insert into emp_audit
+( upd_dt,   Upd_user, Old_eid,  New_eid,  Old_ename, New_ename, Old_salary, New_salary,old_deptid,new_deptid)
+values(
+curdate(),user(),old.eid,null,old.ename,null,
+Old.salary, null,old.deptid,null);
+End;
+$$
+
+Delimiter ;
+
+
+Delete from emp where eid=4;
+
+
+Call  sp_loademp(5000000);
+
+Create index emp_eid_idx on emp(eid);
+
+Create index emp_eid_idx on emp(eid);
+
+
+Show table status like 'emp' \G;
+
+ select table_name,engine from information_schema.tables
+ where table_schema='sep_2022' and table_type='BASE TABLE';
+
+
+
+Show processlist;
+
+
+
+
+Create table t_myisam(salary int) engine=myisam;
+Insert into t_myisam values(100);
+Start transaction;
+Update t_myisam set salary=200;
+Rollback;
+
+Select * from t_myisam;
+
+Start transaction;
+Update t_myisam set salary=300;
+Rollback;
+
+
+
+show warnings;
+
+
+
+
+Create table my_p(deptid int primary key , deptname varchar(100)) engine=myisam;
+
+
+
+Create table my_c(eid int, ename varchar(100),
+Deptid int , foreign key (deptid) references my_p(deptid))
+engine=myisam;
+
+
+Insert into my_c values(1,'a',1);
+
+
+Create table t_csv(id int not null,name varchar(100) not null)
+engine=csv;
+
+
+Insert into t_csv values(1,'a'),(2,'b'),(3,'c');
+
+create table t_archive(id int,name varchar(100)) engine=archive;
+
+Insert into t_archive values(1,'a');
+
+Delete from t_archive; – not allowed;
+
+
+select * from information_schema.engines;
+
+
+Select * from dept
+Where deptid not in(select deptid from emp);
+
+
+Select * from dept
+Where not exists(select 1 from emp where dept.deptid=emp.deptid);
+
+
+Select * from dept
+Where exists(select 1 from emp where dept.deptid=emp.deptid);
+
+499823.3413
+ 499489.7818
+
+
+Select deptname,sum(salary),avg(salary)
+From emp join dept
+On emp.deptid=dept.deptid
+Group by deptname
+Having avg(salary)>(select avg(salary) from emp);
+
+
+
+Create user user2@localhost identified by 'user2';
+
+
+
+select * from mysql.user;
+
+
+
+Grant select on emp to user2@localhost;
+
+
+Revoke select on emp from user2@localhost;
+

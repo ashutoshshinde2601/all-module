@@ -1,0 +1,266 @@
+Write a procedure that takes input a sentence and 
+Returns the words in the sentence. The procedure also takes second parameter which is delimiter to split the sentence to words
+
+–e.g. 'This is Test',' '
+This
+is
+Test
+
+–e.g.- 'Oracle;Java;SQL',';'
+Oracle
+Java
+SQL
+
+Drop procedure sp_splitsent;
+Delimiter $$
+Create procedure sp_splitsent(sent text,split varchar(1))
+Begin
+Declare i int default 1;
+Declare word varchar(100) default '';
+ drop table if exists  words;
+Create temporary table words
+(word varchar(100));
+while(i<=length(sent))
+do
+I f(substring(sent,i,1)=split) then
+If length(trim(word))>0 then
+Insert into words values (trim(word));
+End if;
+Set word='';
+Else
+Set word=concat(word,substring(sent,i,1));
+End if;
+Set i=i+1;
+End while;
+If length(trim(word))>0 then
+Insert into words values (trim(word));
+End if;
+Select * from words;
+Drop table if exists words;
+End;
+$$
+
+Delimiter ;
+
+
+Call sp_splitsent('this is test',' ');
+
+
+Call sp_splitsent('this    is    test',' ');
+
+
+Call sp_splitsent('this; is;;;;;   test',';');
+
+– temporary table
+
+Create temporary table words
+(word varchar(100));
+
+Insert into words values('test');
+
+– temporary table is only valid for the session which creates it
+– it gets dropped automatically when the session is closed
+
+
+
+– query to find out duplicate salary in emp
+
+select salary from emp group by salary having count(*)>1;
+
+
+– write a function that takes input a deptname
+– and returns name of all the employees in that dept
+– as a comma separated list
+– HR
+–a1,d4,g6….
+Drop  function sf_getelist;
+Delimiter $$
+
+Create function sf_getelist(v_deptname varchar(100))
+Returns longtext
+Reads sql data
+Begin
+Declare flag int default 1;
+Declare v_ename varchar(100);
+Declare v_elist longtext default '';
+Declare c1 cursor  for
+Select ename from emp join dept 
+On emp.deptid=dept.deptid
+Where deptname=v_deptname;
+Declare continue handler for not found set flag=0;
+Open c1;
+while(flag=1) 
+Do
+Fetch c1 into v_ename;
+If flag=1 then
+Set v_elist=concat(v_elist,',',v_ename);
+End if;
+End while;
+Close c1;
+return(substring(v_elist,2));
+End;
+$$
+
+
+Delimiter ;
+
+Select sf_getelist('HR');
+
+
+–write a function that takes input a deptname
+And returns sum of salary of that dept
+– don't use sum function
+– use cursor
+
+
+Drop  function sf_gettotalsalary;
+Delimiter $$
+
+Create function sf_gettotalsalary(v_deptname varchar(100))
+Returns bigint
+Reads sql data
+Begin
+Declare flag int default 1;
+Declare  sal bigint;
+Declare total_salary bigint default 0;
+Declare c1 cursor  for
+Select salary from emp join dept 
+On emp.deptid=dept.deptid
+Where deptname=v_deptname;
+Declare continue handler for not found set flag=0;
+Open c1;
+while(flag=1) 
+Do
+Fetch c1 into sal;
+If flag=1 then
+Set total_salary=total_salary+sal;
+End if;
+End while;
+Close c1;
+return(total_salary);
+End;
+$$
+
+Delimiter ;
+
+Select sf_gettotalsalary('HR');
+
+
+insert into tab_cnt 
+select 'emp',count(*) from emp;
+
+
+
+insert into t1 values(3,'c'),;
+
+insert into t1 
+select 4,'d'
+union all
+select 5,'d'
+union all
+select 6,'d';
+
+
+insert into t1 select * from t1;
+drop procedure sp_test_sql_dynamic;
+delimiter $$
+create procedure sp_test_sql_dynamic()
+begin
+declare tname varchar(100);
+set tname='emp';
+select concat('insert into tab_cnt select ''',tname,''',count(*) from ', tname);
+end;
+$$
+
+delimiter ;
+
+call sp_test_sql_dynamic();
+
+
+
+–write a procedure that does the following–
+– returns the name of all the tables in the current database along with their current/actual row count
+
+
+Select table_name from information_schema.tables
+Where table_schema=database();
+Drop  procedure sp_tabcnt;
+Delimiter $$
+Create procedure sp_tabcnt()
+Begin
+Declare flag int default 1;
+Declare tname varchar(100);
+Declare c1 cursor for Select table_name from information_schema.tables
+Where table_schema=database();
+Declare continue handler for not found set flag=0;
+Drop table if exists tab_cnt;
+Create temporary table tab_cnt(table_name varchar(100), Records int);
+Open c1;
+ Myloop: loop
+Fetch c1 into tname;
+If flag=0 then
+Leave myloop;
+Else
+Set @sql_text=concat('insert into tab_cnt select ''', tname,''', count(*) from ' ,tname);
+Prepare statement from @sql_text;
+Execute statement;
+End if;
+End loop;
+Close c1;
+Select * from tab_cnt;
+Drop table if exists tab_cnt;
+End;
+$$
+
+Delimiter ;
+
+
+Call sp_tabcnt();
+
+
+– write a procedure that takes input a string
+– and returns name of all the tables and corresponding column names which contain that string as part the actual data anywhere in the current database
+
+
+
+– HR
+– DEPT, DEPTNAME
+
+– A
+– T1,c2
+EMP,ENAME
+– t2,c3
+
+
+Select table_name,column_name from information_schema.columns where table_schema=database();
+
+
+
+
+Create table custprod (cid int, pid int);
+
+
+insert into custprod values(1,1);
+insert into custprod values(1,4);
+insert into custprod values(1,5);
+insert into custprod values(1,7);
+insert into custprod values(1,9);
+insert into custprod values(2,2);
+insert into custprod values(2,4);
+insert into custprod values(2,6);
+insert into custprod values(3,1);
+insert into custprod values(3,3);
+insert into custprod values(3,5);
+insert into custprod values(3,7);
+insert into custprod values(3,10);
+
+
+
+Select  c1,c2,num,den-num den,num*1.0/(den-num)
+As similarity from (
+Select c1.cid c1,c2.cid c2,
+count(case when c1.pid=c2.pid then c1.pid end) num,
+count(distinct c1.pid) + count(distinct c2.pid) den
+From custprod c1  , custprod c2
+Where c1.cid<c2.cid
+Group by c1.cid,c2.cid) as t ;

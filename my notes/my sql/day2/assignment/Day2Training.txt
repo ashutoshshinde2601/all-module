@@ -1,0 +1,353 @@
+-- primary key constraint
+create table t_pk
+(id int primary key, name varchar(100));
+
+insert into t_pk values(1,'a'); -- works
+insert into t_pk values(1,'b'); -- fails
+insert into t_pk values(null,'b'); -- fails
+
+create table t_pk_multi (id int primary key, c1 int primary key,c2 int); -- fails
+
+create table t_pk_comp (id int , c1 int ,c2 int,
+primary key(c1,c2)); -- works
+
+insert into t_pk_comp values(1,1,1); -- works
+insert into t_pk_comp values(1,1,2); -- works
+
+insert into t_pk_comp values(1,2,2); -- works
+
+insert into t_pk_comp values(2,2,2); -- fails
+
+
+-- not null constraints
+create table t_nn(id int , name varchar(100) not null);
+
+insert into t_nn values(1,'a'); -- works
+
+insert into t_nn values(null,'a'); -- works
+
+insert into t_nn values(2,null); -- fails
+
+insert into t_nn(id) values(3); -- fails
+
+
+
+-- check constraint
+
+create table t_cc(eid int, ename varchar(100),
+salary int  check(salary>0));
+
+insert into t_cc values(1,'a',0); -- fails
+
+insert into t_cc values(1,'a',100); -- works
+
+create table t_cc2(id int, gender varchar(100)
+check (gender in ('Male','Female')));
+insert into t_cc2 values(1,null); -- works
+
+insert into t_cc2 values(1,'male'); -- works
+
+
+insert into t_cc2 values(1,'abc'); -- fails
+
+
+
+create table t_cc_vivek
+(id int, name varchar(100) check(name like 'vivek%'));
+
+
+insert into t_cc_vivek values(1,'abc'); -- fails
+
+insert into t_cc_vivek values(1,'vivek abc'); -- works
+
+
+
+
+-- foreign key
+
+create table t_parent
+(deptid int primary key, deptname varchar(100));
+
+
+create table t_child
+(eid int, ename varchar(100), deptid int,
+foreign key (deptid) references t_parent(deptid));
+
+
+insert into t_child values(1,'a',1); --fails
+
+insert into t_child values(1,'a',null); -- works
+insert into t_parent values(1,'HR'); -- works
+
+insert into t_child values(1,'a',1); -- works
+
+
+
+
+create table t_no(id int, name varchar(100));
+
+
+alter table t_no add primary key(id);
+
+
+create table t_no_child(c1 int, id int);
+
+alter table t_no_child
+add constraint id_fk
+foreign key(id) references t_no(id);
+
+
+
+-- default
+
+
+create table t_def(id int, salary int default 100);
+
+
+insert into t_def(id) values(1); -- salary takes default value 100
+
+insert into t_def(id,salary) values(1,null); -- salary takes null
+
+-- drop
+
+drop table t_def;
+
+
+
+-- Joins
+
+
+create table t1 (c1 int, c2 varchar(100));
+
+create table t2 (c1 int, c3 varchar(100));
+
+insert into t1 values
+(1,'a'),(2,'b'),(3,'c');
+
+
+insert into t2 values
+(3,'x'),(4,'y'),(5,'z');
+
+
+-- cross join
+
+-- new syntax or Ansi standard syntax
+
+select * from t1 cross join t2;
+
+
+select c1,c2,c3 from t1 cross join t2; -- ambigous column error
+
+
+select t1.c1,c2,c3 from t1 cross join t2; 
+
+
+select t1.*,c3 from t1 cross join t2; 
+
+
+
+-- old syntax
+
+
+select * from t1 ,t2;
+
+select c1,c2,c3 from t1 , t2; -- ambigous column error
+
+select t1.c1,c2,c3 from t1 , t2; 
+
+
+select t1.*,c3 from t1 , t2; 
+
+
+-- inner join
+
+-- new/ansi sytax
+
+select * from t1 inner join t2 
+on t1.c1=t2.c1;
+
+select * from t1 join t2 
+on t1.c1=t2.c1;
+
+
+-- old sytax
+
+select * from t1 , t2 
+where t1.c1=t2.c1;
+
+
+
+-- left join can be only be done in new syntax
+
+select * from t1 left outer join t2 
+on t1.c1=t2.c1;
+
+
+select * from t1 left join t2 
+on t1.c1=t2.c1;
+
+
+
+
+-- right join can be only be done in new syntax
+
+select * from t1 right outer join t2 
+on t1.c1=t2.c1;
+
+
+select * from t1 right join t2 
+on t1.c1=t2.c1;
+
+
+-- full join can be only be done in new syntax
+-- fails in mysql
+select * from t1 full join t2 
+on t1.c1=t2.c1;
+
+
+-- workaround
+
+select * from t1 left join t2 
+on t1.c1=t2.c1
+union 
+select * from t1 right join t2 
+on t1.c1=t2.c1
+;
+
+
+
+-- set operators
+
+create table a (id int);
+create table b (id int);
+insert into a values(1),(2),(3);
+insert into b values(3),(4),(5);
+
+
+
+
+select * from a
+union 
+select * from b;
+
+
+select * from b
+union 
+select * from a;
+
+
+select * from a
+union all
+select * from b;
+
+
+select * from b
+union all
+select * from a;
+
+-- fails
+select * from a
+intersect
+select * from b;
+
+-- fails
+select * from b
+intersect
+select * from a;
+
+
+-- workaround of intersect in mysql
+insert into a values(3);
+select distinct * from a where id in (select id from b);
+
+-- fails
+select * from a
+except
+select * from b;
+
+-- fails
+select * from b
+minus
+select * from a;
+
+-- workaround of intersect in mysql
+select distinct * from a where id not in (select id from b);
+
+
+
+-- cross join example
+
+create table teams(team varchar(100));
+insert into teams values('A'),('B'),('C'),('D');
+
+
+select * from teams t1, teams t2
+where t1.team<t2.team;
+
+
+
+
+select * from teams t1, teams t2
+where t1.team<>t2.team;
+
+
+select * from a
+union 
+select * from t1;
+
+-- aggregate queries
+select count(*) from table1;
+
+select count(1) from table1;
+
+select count(100) from table1;
+
+select count('a') from table1;
+
+
+select count(c3) from table1;
+
+select count(distinct c3) from table1;
+
+select sum(c1) from table1;
+
+select max(c1),max(c2),max(c3) from table1;
+
+select min(c1),min(c2),min(c3) from table1;
+
+select avg(c1),sum(c1)/count(*) wrong_avg,sum(c1)/count(c1) correct_avg from table1;
+
+
+select c3,avg(c1),sum(c1)/count(*) wrong_avg,sum(c1)/count(c1) correct_avg from table1
+group by c3;
+
+
+
+select c3,year(c3),month(c3) from table1;
+
+select year(c3),avg(c1),sum(c1)/count(*) wrong_avg,sum(c1)/count(c1) correct_avg from table1
+group by year(c3);
+
+
+select month(c3),avg(c1),sum(c1)/count(*) wrong_avg,sum(c1)/count(c1) correct_avg from table1
+group by month(c3);
+
+
+
+select year(c3),month(c3),avg(c1),sum(c1)/count(*) wrong_avg,sum(c1)/count(c1) correct_avg from table1
+group by year(c3),month(c3);
+
+
+
+select c3,avg(c1),sum(c1)/count(*) wrong_avg,sum(c1)/count(c1) correct_avg from table1
+group by c3
+having avg(c1)>3;
+
+select * from table1 
+order by c1 desc;
+
+select * from table1 
+order by c1 ;
+
+select * from table1 
+order by c3,c1 desc;

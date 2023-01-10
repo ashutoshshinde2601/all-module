@@ -1,0 +1,182 @@
+use sep_2022;
+
+create table t1(c1 int, c2 varchar(100), c3 date);
+
+select * from t1;
+
+
+insert into t1(c1,c2,c3) values(1,'ABC','2022-02-18');
+
+
+insert into t1 values(2,'XYZ','2022-04-20');
+
+insert into t1 values(3,'A1BD',curdate());
+
+select curdate();
+
+
+select curtime();
+
+select now();
+
+
+
+
+insert into t1(c1,c2,c3) values(4,'ABC4','2022-02-18'),
+(5,'ABC2dff','2022-02-18'),
+(6,'AB4rfvf','2022-02-18')
+,(7,'ABC4ggt','2022-02-18')
+,(8,'ABC4sddss','2022-02-18');
+
+
+
+insert into t1(c1,c2) values(9,'eefde');
+
+
+
+insert into t1 values(10,'eedfgfde',null);
+
+-- null means not 0 not blank it means value not yet define
+
+insert into t1 values('a10','eedfgfde',null); -- fails
+
+
+
+
+select * from t1;
+
+select * from t1 where c1=5;
+
+
+select * from t1 where c1!=5;
+
+select * from t1 where c1<>5;
+
+
+select * from t1 where c3='2022-02-18';
+
+
+select * from t1 where c3<>'2022-02-18';
+
+
+select * from t1 where c3 is null;
+
+
+select * from t1 where c3 is not null;
+
+
+select * from t1 where c1 in(1,4,7,9);
+
+select * from t1 where c1 not in(1,4,7,9);
+
+
+select * from t1 where c1>3;
+
+select * from t1 where c1>=3;
+
+
+select * from t1 where c1<3;
+
+select * from t1 where c1<=3;
+
+
+
+select * from t1 where c2>'b';
+
+
+select * from t1 where c2<'b';
+
+
+
+select * from t1 where c1 between 4 and 6;
+
+select * from t1 where c1 not between 4 and 6;
+
+select * from t1 where c2 like 'a%';
+
+
+select * from t1 where c2 like '%a%';
+
+select * from t1 where c2 like '_b%';
+
+-- two wildcard characters
+-- % - means 0 or any number of characters
+-- _ - means exactly 1 character
+
+
+update t1
+set c2='Mark' 
+where c1=4;
+
+update t1
+set c2='Mark' ,c3='2021-12-31'
+where c1=4;
+
+
+delete from t1 where c1=4;
+
+start transaction;
+delete from t1 where c1=1;
+
+rollback;
+
+start transaction;
+delete from t1 ;
+rollback;
+
+commit;
+
+alter table t1 add c4 int;
+
+alter table t1 drop column c4 ;
+
+alter table t1 add c4 int default 10;
+alter table t1 drop column c4 ;
+
+
+alter table t1 modify c2 varchar(200);
+
+
+alter table t1 modify c2 varchar(2);
+
+
+alter table t1 add c4 int;
+
+
+alter table t1 rename column c4 to column4;
+
+alter table t1 rename to table1;
+
+
+
+-- unique key
+
+create table t1_uk(c1 int unique,c2 varchar(100));
+
+insert into t1_uk values(1,'a'); -- works
+
+insert into t1_uk values(1,'b'); -- fails
+
+insert into t1_uk values(null,'b'); -- works
+
+insert into t1_uk values(null,'b'); -- works
+insert into t1_uk values(null,'b'); -- works
+insert into t1_uk values(null,'b'); -- works
+
+
+create table t1_uk_comp(c1 int, c2 int, c3 varchar(100),
+unique(c1,c2));
+
+insert into t1_uk_comp values(1,1,'a'); -- works
+insert into t1_uk_comp values(1,2,'a'); -- works
+insert into t1_uk_comp values(2,2,'a'); -- works
+insert into t1_uk_comp values(2,2,'a'); -- fails
+
+
+create table t1_uk_multi(c1 int unique, c2 int unique, c3 varchar(100));
+
+insert into t1_uk_multi values(1,1,'a'); -- works
+insert into t1_uk_multi values(1,2,'a'); -- fails
+insert into t1_uk_multi values(2,2,'a'); -- works
+insert into t1_uk_multi values(2,2,'a'); -- fails
+

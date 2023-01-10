@@ -1,0 +1,122 @@
+ 49. Write a query that joins the Customer table to itself to find all pairs of customers served by a 
+single salesperson.
+=====>>>>
+select * from (select * from customers group by snum having count(cname)=1 ) as t ,(select * from 
+customers group by snum having count(cname)=1) as t1 where t.cname<t1.cname;
++------+----------+----------+--------+------+------+----------+------+--------+------+
+| CNUM | CNAME    | CITY     | RATING | SNUM | CNUM | CNAME    | CITY | RATING | SNUM |
++------+----------+----------+--------+------+------+----------+------+--------+------+
+| 2008 | Cisneros | San Jose |    300 | 1007 | 2002 | Giovanni | Rome |    200 | 1003 |
+| 2008 | Cisneros | San Jose |    300 | 1007 | 2007 | Pereira  | Rome |    100 | 1004 |
+| 2002 | Giovanni | Rome     |    200 | 1003 | 2007 | Pereira  | Rome |    100 | 1004 |
++------+----------+----------+--------+------+------+----------+------+--------+------+
+3 rows in set (0.01 sec)
+======================================================================================================
+50. Write a query that will give you all orders for more than $1000.00
+===>>>
+ select * from orders where amt>1000;
++------+---------+------------+------+------+
+| ONUM | AMT     | ODATE      | CNUM | SNUM |
++------+---------+------------+------+------+
+| 3002 |  1900.1 | 1996-10-03 | 2007 | 1004 |
+| 3005 | 5160.45 | 1996-10-03 | 2003 | 1002 |
+| 3006 | 1098.16 | 1996-10-03 | 2008 | 1007 |
+| 3009 | 1713.23 | 1996-10-04 | 2002 | 1003 |
+| 3008 |    4723 | 1996-10-05 | 2006 | 1001 |
+| 3010 | 1309.95 | 1996-10-06 | 2004 | 1002 |
+| 3011 | 9891.88 | 1996-10-06 | 2006 | 1001 |
+============================================================================
+51. Write a query that lists each order number followed by the name of the customer who made 
+that order.
+===>>>
+mysql> select cname ,onum from orders s,customers c where s.cnum=c.cnum;
++----------+------+
+| cname    | onum |
++----------+------+
+| Cisneros | 3001 |
+| Hoffman  | 3003 |
+| Pereira  | 3002 |
+| Liu      | 3005 |
+| Cisneros | 3006 |
+| Giovanni | 3009 |
+| Giovanni | 3007 |
+| Clemens  | 3008 |
+| Grass    | 3010 |
+| Clemens  | 3011 |
+==========================================================================
+52. Write 2 queries that select all salespeople (by name and number) who have customers in their 
+cities who they do not service, one using a join and one a corelated subquery. Which solution 
+is more elegant?
+====>>>
+select * from salespeople s where exists (select 1 from customers c where s.city=c.city and s.snum=c.snum);
+Empty set (0.00 sec)
+
+select * from salespeople s,customers c where s.city=c.city and s.snum=c.snum;
+Empty set (0.00 sec)
+
+=========================================================================
+53. Write a query that selects all customers whose ratings are equal to or greater than ANY (in the 
+SQL sense) of Serres’?
+===>>> select * from customers where rating >= any(select rating from customers c,salespeople s where c.snum=s.snum and s.sname='serres');
++------+----------+----------+--------+------+
+| CNUM | CNAME    | CITY     | RATING | SNUM |
++------+----------+----------+--------+------+
+| 2002 | Giovanni | Rome     |    200 | 1003 |
+| 2003 | Liu      | San Jose |    200 | 1002 |
+| 2004 | Grass    | Berlin   |    300 | 1002 |
+| 2008 | Cisneros | San Jose |    300 | 1007 |
++------+----------+----------+--------+------+
+4 rows in set (0.00 sec)
+==========================================================================
+54. Write 2 queries that will produce all orders taken on October 3 or October 4.
+==>>>
+select * from orders where odate='1996-10-03' or odate='1996-10-04';
++------+---------+------------+------+------+
+| ONUM | AMT     | ODATE      | CNUM | SNUM |
++------+---------+------------+------+------+
+| 3001 |   18.69 | 1996-10-03 | 2008 | 1007 |
+| 3003 |  767.19 | 1996-10-03 | 2001 | 1001 |
+| 3002 |  1900.1 | 1996-10-03 | 2007 | 1004 |
+| 3005 | 5160.45 | 1996-10-03 | 2003 | 1002 |
+| 3006 | 1098.16 | 1996-10-03 | 2008 | 1007 |
+| 3009 | 1713.23 | 1996-10-04 | 2002 | 1003 |
+| 3007 |   75.75 | 1996-10-04 | 2002 | 1003 |
++------+---------+------------+------+------+
+7 rows in set (0.00 sec)
+
+mysql> select * from (select * from orders where odate='1996-10-03' or odate='1996-10-04') as t;
++------+---------+------------+------+------+
+| ONUM | AMT     | ODATE      | CNUM | SNUM |
++------+---------+------------+------+------+
+| 3001 |   18.69 | 1996-10-03 | 2008 | 1007 |
+| 3003 |  767.19 | 1996-10-03 | 2001 | 1001 |
+| 3002 |  1900.1 | 1996-10-03 | 2007 | 1004 |
+| 3005 | 5160.45 | 1996-10-03 | 2003 | 1002 |
+| 3006 | 1098.16 | 1996-10-03 | 2008 | 1007 |
+| 3009 | 1713.23 | 1996-10-04 | 2002 | 1003 |
+| 3007 |   75.75 | 1996-10-04 | 2002 | 1003 |
++------+---------+------------+------+------+
+===========================================================================
+55. Write a query that produces all pairs of orders by a given customer. Name that customer and 
+eliminate duplicates.
+===>>>
+
+56. Find only those customers whose ratings are higher than every customer in Rome.
+==>>>
+select * from customers where rating > any (select rating from customers where city='rome');
+
+
++------+----------+----------+--------+------+
+| CNUM | CNAME    | CITY     | RATING | SNUM |
++------+----------+----------+--------+------+
+| 2002 | Giovanni | Rome     |    200 | 1003 |
+| 2003 | Liu      | San Jose |    200 | 1002 |
+| 2004 | Grass    | Berlin   |    300 | 1002 |
+| 2008 | Cisneros | San Jose |    300 | 1007 |
++------+----------+----------+--------+------+
+==============================================================
+
+
+
+
+

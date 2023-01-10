@@ -1,0 +1,320 @@
+Microsoft Windows [Version 10.0.22000.194]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Nandakumar>mysql -uroot -p
+Enter password: *************
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 54
+Server version: 8.0.30 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use sep_2022
+Database changed
+mysql> select cname from customers where cnum>1000+(select snum from salespeople where sname='serres');
++----------+
+| cname    |
++----------+
+| Liu      |
+| Grass    |
+| Clemens  |
+| cisneros |
+| San Jose |
++----------+
+5 rows in set (0.00 sec)
+
+mysql> select * from t_parent;
++--------+----------+
+| deptid | deptname |
++--------+----------+
+|      1 | hr       |
++--------+----------+
+1 row in set (0.00 sec)
+
+mysql> select * from t_child;
++------+-------+--------+
+| eid  | ename | deptid |
++------+-------+--------+
+|    1 | a     |   NULL |
+|    2 | b     |      1 |
++------+-------+--------+
+2 rows in set (0.00 sec)
+
+mysql> insert into t_child values (3,'c',4);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`sep_2022`.`t_child`, CONSTRAINT `t_child_ibfk_1` FOREIGN KEY (`deptid`) REFERENCES `t_parent` (`deptid`))
+mysql> select * from t1;
++------+------+
+| c1   | c2   |
++------+------+
+|    1 | a    |
+|    2 | b    |
+|    3 | c    |
++------+------+
+3 rows in set (0.00 sec)
+
+mysql> select * from t2;
++------+------+
+| c1   | c3   |
++------+------+
+|    3 | x    |
+|    4 | y    |
+|    5 | z    |
++------+------+
+3 rows in set (0.00 sec)
+
+mysql> select * from t1 where c1 in(select * from t2 );
+ERROR 1241 (21000): Operand should contain 1 column(s)
+mysql> select * from t1 where c1 in(select c1 from t2 );
++------+------+
+| c1   | c2   |
++------+------+
+|    3 | c    |
++------+------+
+1 row in set (0.00 sec)
+
+mysql> select * from t1 where c1 not in(select c1 from t2 );
++------+------+
+| c1   | c2   |
++------+------+
+|    1 | a    |
+|    2 | b    |
++------+------+
+2 rows in set (0.00 sec)
+
+mysql> select sname ,(comm)*100 percentage from salespeople;
++---------+--------------------+
+| sname   | percentage         |
++---------+--------------------+
+| Peel    | 11.999999731779099 |
+| serres  | 12.999999523162842 |
+| Motika  | 10.999999940395355 |
+| Rifkin  | 15.000000596046448 |
+| Axelrod | 10.000000149011612 |
+| Fran    | 25.999999046325684 |
++---------+--------------------+
+6 rows in set (0.00 sec)
+
+mysql> select sname ,(round(comm)*100) percentage from salespeople;
++---------+------------+
+| sname   | percentage |
++---------+------------+
+| Peel    |          0 |
+| serres  |          0 |
+| Motika  |          0 |
+| Rifkin  |          0 |
+| Axelrod |          0 |
+| Fran    |          0 |
++---------+------------+
+6 rows in set (0.00 sec)
+
+mysql> select sname ,round((comm)*100) percentage from salespeople;
++---------+------------+
+| sname   | percentage |
++---------+------------+
+| Peel    |         12 |
+| serres  |         13 |
+| Motika  |         11 |
+| Rifkin  |         15 |
+| Axelrod |         10 |
+| Fran    |         26 |
++---------+------------+
+6 rows in set (0.00 sec)
+
+mysql> drop table from orders;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'from orders' at line 1
+mysql> drop table orders;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> create table orders( onum int ,amt int,odate date,cnum int,snum int);
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> insert into Orders values (3001,18.69,'1996-10-03',2008,1007),(3003,767.19,'1996-10-03',2001,1001),(3002,1900.10,'1996-10-03',2007,1004),(3005,5160.45,'1996-10-03',2003,1002),(3006,1098.16,'1996-10-03',2008,1007),(3009,1713.23,'1996-10-04',2002,1003),(3007,75.75,'1996-10-04',2002,1003),(3008,4723.00,'1996-10-05',2006,1001),(3010,1309.95,'1995-10-06',2004,1002),(3011,9891.88,'1996-10-06',2006,1001);
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> select * from orders;
++------+------+------------+------+------+
+| onum | amt  | odate      | cnum | snum |
++------+------+------------+------+------+
+| 3001 |   19 | 1996-10-03 | 2008 | 1007 |
+| 3003 |  767 | 1996-10-03 | 2001 | 1001 |
+| 3002 | 1900 | 1996-10-03 | 2007 | 1004 |
+| 3005 | 5160 | 1996-10-03 | 2003 | 1002 |
+| 3006 | 1098 | 1996-10-03 | 2008 | 1007 |
+| 3009 | 1713 | 1996-10-04 | 2002 | 1003 |
+| 3007 |   76 | 1996-10-04 | 2002 | 1003 |
+| 3008 | 4723 | 1996-10-05 | 2006 | 1001 |
+| 3010 | 1310 | 1995-10-06 | 2004 | 1002 |
+| 3011 | 9892 | 1996-10-06 | 2006 | 1001 |
++------+------+------------+------+------+
+10 rows in set (0.00 sec)
+
+mysql> select * from salespeople s join orders o
+    -> on s.sum=0.snum
+    -> where amt>3000 order by odate;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'snum
+where amt>3000 order by odate' at line 2
+mysql> select * from salespeople s join orders o
+    -> on s.sum=o.snum
+    -> where amt>3000 order by odate;
+ERROR 1054 (42S22): Unknown column 's.sum' in 'on clause'
+mysql> select * from salespeople s join orders o
+    -> on s.snum=o.snum
+    -> where amt>3000 order by odate;
++------+--------+----------+------+------+------+------------+------+------+
+| SNUM | sname  | city     | comm | onum | amt  | odate      | cnum | snum |
++------+--------+----------+------+------+------+------------+------+------+
+| 1002 | serres | San Jose | 0.13 | 3005 | 5160 | 1996-10-03 | 2003 | 1002 |
+| 1001 | Peel   | London   | 0.12 | 3008 | 4723 | 1996-10-05 | 2006 | 1001 |
+| 1001 | Peel   | London   | 0.12 | 3011 | 9892 | 1996-10-06 | 2006 | 1001 |
++------+--------+----------+------+------+------+------------+------+------+
+3 rows in set (0.00 sec)
+
+mysql> select * from salespeople s join orders o
+    -> on s.snum=o.snum
+    -> where amt=max(amt) and odate='1996-10-03';
+ERROR 1111 (HY000): Invalid use of group function
+mysql> select * from salespeople s join orders o
+    -> on s.snum=o.snum
+    ->
+    -> where odate='1996-10-03' order by amt desc limit 1;
++------+--------+----------+------+------+------+------------+------+------+
+| SNUM | sname  | city     | comm | onum | amt  | odate      | cnum | snum |
++------+--------+----------+------+------+------+------------+------+------+
+| 1002 | serres | San Jose | 0.13 | 3005 | 5160 | 1996-10-03 | 2003 | 1002 |
++------+--------+----------+------+------+------+------------+------+------+
+1 row in set (0.00 sec)
+
+mysql> select * ,s.max(amt) from salespeople s join customers c
+    -> on s.snum=c.snum
+    -> where odate='1996-10-03';
+ERROR 1630 (42000): FUNCTION s.max does not exist. Check the 'Function Name Parsing and Resolution' section in the Reference Manual
+mysql> select  cname from customers where rating=200;
++----------+
+| cname    |
++----------+
+| Giovanni |
+| Liu      |
++----------+
+2 rows in set (0.00 sec)
+
+mysql> select  cname from customers where rating>200;
++----------+
+| cname    |
++----------+
+| Grass    |
+| San Jose |
++----------+
+2 rows in set (0.00 sec)
+
+mysql> select * ,count(sname) from salespeople s join orders o
+    -> on s.snum=o.snum ;
++------+--------+-----------+------+------+------+------------+------+------+--------------+
+| SNUM | sname  | city      | comm | onum | amt  | odate      | cnum | snum | count(sname) |
++------+--------+-----------+------+------+------+------------+------+------+--------------+
+| 1007 | Rifkin | Barcelona | 0.15 | 3001 |   19 | 1996-10-03 | 2008 | 1007 |           10 |
++------+--------+-----------+------+------+------+------------+------+------+--------------+
+1 row in set (0.00 sec)
+
+mysql> select ,count(sname) count from salespeople s join orders o
+    -> on s.snum=o.snum ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ',count(sname) count from salespeople s join orders o
+on s.snum=o.snum' at line 1
+mysql> select count(sname) count from salespeople s join orders o
+    -> on s.snum=o.snum ;
++-------+
+| count |
++-------+
+|    10 |
++-------+
+1 row in set (0.00 sec)
+
+mysql> select cname,comm from salespeople s join customers c
+    -> join s.snum=c.snum
+    -> where comm>0.12;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '=c.snum
+where comm>0.12' at line 2
+mysql> select cname,comm from salespeople s join customers c
+    -> on s.snum=c.snum
+    -> where comm>0.12;
++----------+------+
+| cname    | comm |
++----------+------+
+| Liu      | 0.13 |
+| Grass    | 0.13 |
+| San Jose | 0.15 |
++----------+------+
+3 rows in set (0.00 sec)
+
+mysql> select sname from salespeople s join customers c
+    -> on s.snum=c.snum
+    -> order by desc ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'desc' at line 3
+mysql> select sname from salespeople s join customers c
+    -> on s.snum=c.snum
+    -> order by city desc ;
+ERROR 1052 (23000): Column 'city' in order clause is ambiguous
+mysql> select sname from salespeople s join customers c
+    -> order by desc ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'desc' at line 2
+mysql> select sname from salespeople s join customers c
+    -> on s.snum=c.snum
+    -> order by c.city desc ;
++---------+
+| sname   |
++---------+
+| serres  |
+| Axelrod |
+| Motika  |
+| Peel    |
+| Peel    |
+| Rifkin  |
+| serres  |
++---------+
+7 rows in set (0.00 sec)
+
+mysql> select snum ,count(snum) from customers group by snum having count(sum)>1;
+ERROR 1054 (42S22): Unknown column 'sum' in 'having clause'
+mysql> select snum ,count(snum) from customers group by snum having count(snum)>1;
++------+-------------+
+| snum | count(snum) |
++------+-------------+
+| 1001 |           2 |
+| 1002 |           2 |
++------+-------------+
+2 rows in set (0.00 sec)
+
+mysql> select sname from salespeople s where city in (select city from customers);
++--------+
+| sname  |
++--------+
+| Peel   |
+| serres |
+| Motika |
+| Fran   |
++--------+
+4 rows in set (0.00 sec)
+
+mysql> select sname,cname from salespeople s where city in (select city from customers);
+ERROR 1054 (42S22): Unknown column 'cname' in 'field list'
+mysql> select sname from salespeople where sname='p__i%';
+Empty set (0.00 sec)
+
+mysql> select sname from salespeople where sname='p__l%';
+Empty set (0.00 sec)
+
+mysql> select sname from salespeople where sname like 'p__l%';
++-------+
+| sname |
++-------+
+| Peel  |
++-------+
+1 row in set (0.00 sec)
+
+mysql>
